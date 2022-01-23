@@ -16,54 +16,94 @@ import "../../utils/introspection/ERC165.sol";
  * the Metadata extension, but not including the Enumerable extension, which is available separately as
  * {ERC721Enumerable}.
  */
+
+contract ibridgeRegistry {
+
+    function ownerOf(uint256 tokenId) public view virtual returns (address) {}
+
+    function name() public view virtual returns (string memory) {}
+
+    function symbol() public view virtual returns (string memory) {}
+
+    function tokenURI(uint256 tokenId) public view virtual returns (string memory) {}
+
+    function mintInReg(string memory name_, string memory symbol_, string memory assetData_) 
+        public virtual returns (address) {}
+
+    function burnProxy(uint256 proxy_) public  {}
+}
+
 contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
 
-    string private Tname = 'hi';
+    using Address for address;
+    using Strings for uint256;
+
+    // string private Tname = 'hi';
+    address private _ownerAddy;
+    address private _ledgerAddy;
+    ibridgeRegistry br;
+    
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    constructor() {
-        Tname;
+    constructor(address ownerAddy, address ledgerAddy) {
+        // Tname;
+        _ownerAddy = ownerAddy;
+        _ledgerAddy = ledgerAddy;
+        br =  ibridgeRegistry(ledgerAddy);
     }
 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        
+        return
+        interfaceId == type(IERC721).interfaceId ||
+        interfaceId == type(IERC721Metadata).interfaceId ||
+        super.supportsInterface(interfaceId);
     }
 
     /**
      * @dev See {IERC721-balanceOf}.
      */
     function balanceOf(address owner) public view virtual override returns (uint256) {
-        
+        // to be implemented
+        return 0;
     }
 
     /**
      * @dev See {IERC721-ownerOf}.
      */
     function ownerOf(uint256 tokenId) public view virtual override returns (address) {
-        
+        return br.ownerOf(tokenId);
     }
 
     /**
      * @dev See {IERC721Metadata-name}.
      */
     function name() public view virtual override returns (string memory) {
-        
+        return br.name();
     }
 
     /**
      * @dev See {IERC721Metadata-symbol}.
      */
     function symbol() public view virtual override returns (string memory) {
+        return br.symbol();
     }
 
     /**
      * @dev See {IERC721Metadata-tokenURI}.
      */
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        return br.tokenURI(tokenId);
+    }
+
+    // burn
+    function burn(uint256 tokenID) public {
+        require(msg.sender == _ownerAddy, "not owner");
+
+        br.burnProxy(tokenID);
     }
 
     /**
@@ -86,7 +126,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
      * @dev See {IERC721-getApproved}.
      */
     function getApproved(uint256 tokenId) public view virtual override returns (address) {
-
+        return address(0);
     }
 
     /**
@@ -100,7 +140,7 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
      * @dev See {IERC721-isApprovedForAll}.
      */
     function isApprovedForAll(address owner, address operator) public view virtual override returns (bool) {
-
+        return false;
     }
 
     /**
